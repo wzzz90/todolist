@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>todolist</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h1>todoList</h1>
+        <div>
+            <input type="text" v-model="newTask" @keyup.enter="addTask"/>
+        </div>
+        <hr>
+        <ul>
+            <li v-for="(item, index) in todos" :key="index">
+                <input type="checkbox" :checked="item.done" @click="toggle(item.id)">
+                <span>{{item.title}}</span>
+                <button @click="del(item.id)">删除</button>
+            </li>
+        </ul>
+    </div>
+</body>
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            todos: [],
+            newTask: ''
+        },
+        mounted() {
+            fetch('/todos')
+            .then(response => response.json())
+            .then(data => {
+                if(data.status) {
+                    this.todos = data.data
+                }
+                
+            })
+        },
+        methods: {
+            toggle(id) {
+                fetch('/editTodos', {
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json;charset=utf-8'
+                    },
+                    body: JSON.stringify({id})
+                })
+                .then(res=>res.json())
+                .then(data => {
+                    if(data.status) {
+                        this.todos = data.data
+                    }
+                })
+            },
+            del(id) {
+                console.log(id)
+                fetch('/delTodo', {
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json;charset=utf-8'
+                    },
+                    body: JSON.stringify({id})
+                })
+                .then(res=>res.json())
+                .then(data => {
+                    if(data.status) {
+                        this.todos = data.data
+                    }
+                })
+                
+            },
+
+            addTask() {
+                if(!!this.newTask) {
+                    const params = {
+                        newTask: this.newTask
+                    }
+                    fetch('/addTodo', {
+                        method: 'post',
+                        headers: {
+                            'Content-Type': 'application/json;charset=utf-8'
+                        },
+                        body: JSON.stringify(params)
+                    })
+                    .then(res=>res.json())
+                    .then(data => {
+                        if(data.status) {
+                            this.todos = data.data
+                            this.newTask = ''
+                        }
+                    })
+                }
+                
+            }
+            
+        }
+    })
+</script>
+</html>
